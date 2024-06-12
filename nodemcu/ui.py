@@ -93,7 +93,7 @@ port = 80
 #     except Exception as e:
 #         print(f"Failed to send/receive data: {e}")
 
-def sendroutestocontroller(x):
+def sendroutestocontroller(x,numberoftables):
     print(x)
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
@@ -106,16 +106,16 @@ def sendroutestocontroller(x):
         currentcommand=''
         # print(x[0])
         if x[0] == "Continue":
-            currentcommand= 'w'
+            currentcommand= 'w' 
         elif x[0]== "Up" and startdirection=="Left":
-            currentcommand= 'd'
+            currentcommand= 'd' 
         elif x[0]== "Up" and startdirection=="Right":
-            currentcommand= 'a'
+            currentcommand= 'a' 
 
         elif x[0]== "Left" and startdirection=="Up":
-            currentcommand= 'a'
+            currentcommand= 'a' 
         elif x[0]== "Left" and startdirection=="Down":
-            currentcommand= 'd'
+            currentcommand= 'd' 
 
         elif x[0]== "Right" and startdirection=="Up":
             currentcommand= 'd'
@@ -135,14 +135,13 @@ def sendroutestocontroller(x):
 
 
         while True:
-            # print("plz", currentcommand.encode())
             client_socket.sendall(currentcommand.encode() + b'\n')
-
             # # Receive response from the server
             response = client_socket.recv(1024)
             print("Response from ESP-WROOM-32:", response.decode())
             if response.decode()=="Done":
                 break
+    
     client_socket.close()
             
 
@@ -164,35 +163,40 @@ def sendroute():
         search_key2 = 'k'+value2
         result2 = find_item_by_key(data, search_key2)
         if result1.get('cost') < result2.get('cost'):
-            sendroutestocontroller(result1.get(search_key1))
+            sendroutestocontroller(determine_directions(result1.get(search_key1)),2)
             time.sleep(10)
             newsearch_key=value1+value2
             newresult= find_item_by_key(data,newsearch_key)
-            sendroutestocontroller(newresult.get(newsearch_key))
+            sendroutestocontroller(determine_directions(newresult.get(newsearch_key)),1)
             time.sleep(10)
             finalsearch_key=value2+'k'
             finalresult=find_item_by_key(data,finalsearch_key)
-            sendroutestocontroller(finalresult.get(finalsearch_key))
+            sendroutestocontroller(determine_directions(finalresult.get(finalsearch_key)),1)
             time.sleep(10)
         else:
             # sendroutestocontroller(result2.get(search_key1))
-            sendroutestocontroller(result2.get(search_key2))
+            sendroutestocontroller(determine_directions(result2.get(search_key2)),2)
             time.sleep(10)
             newsearch_key=value2+value1
             newresult= find_item_by_key(data,newsearch_key)
-            sendroutestocontroller(newresult.get(newsearch_key))
+            sendroutestocontroller(determine_directions(newresult.get(newsearch_key)),1)
             time.sleep(10)
 
             finalsearch_key=value1+'k'
             finalresult=find_item_by_key(data,finalsearch_key)
-            sendroutestocontroller(finalresult.get(finalsearch_key))
+            sendroutestocontroller(determine_directions(finalresult.get(finalsearch_key)),1)
             time.sleep(10)
 
     else:
         route=result1.get(search_key1)
         goroute= determine_directions(route)
-        sendroutestocontroller(goroute)
+        sendroutestocontroller(goroute,1)
         time.sleep(10)
+        goinghome_key = value1+'k'
+        goinghomeresult = find_item_by_key(data,goinghome_key)
+        print(goinghomeresult)
+        print(goinghomeresult.get(goinghome_key))
+        sendroutestocontroller(determine_directions(goinghomeresult.get(goinghome_key)),1) 
         # returnresult1=find_item_by_key(data,value1+'k')
 
         # returnroute=determine_directions(returnresult1.get(value1+'k'))
