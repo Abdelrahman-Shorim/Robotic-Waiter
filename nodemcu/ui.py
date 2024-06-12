@@ -3,6 +3,8 @@ from tkinter import ttk
 import subprocess
 import json
 
+import time
+
 def getoptions():
     with open('./astardistancesdata.json','r') as file:
         data=json.load(file)
@@ -70,7 +72,7 @@ def determine_directions(points):
 import socket
 
 # ESP-WROOM-32 IP address and port
-host = '192.168.76.6'  # Replace with the actual IP address of your ESP-WROOM-32
+host = '192.168.240.6'  # Replace with the actual IP address of your ESP-WROOM-32
 port = 80
 
 
@@ -92,6 +94,7 @@ port = 80
 #         print(f"Failed to send/receive data: {e}")
 
 def sendroutestocontroller(x):
+    print(x)
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
 
@@ -128,11 +131,11 @@ def sendroutestocontroller(x):
             startdirection=x[0]
         x.pop(0)
 
-        print("yaraab",currentcommand)
+        # print("yaraab",currentcommand)
 
 
         while True:
-            print("plz", currentcommand.encode())
+            # print("plz", currentcommand.encode())
             client_socket.sendall(currentcommand.encode() + b'\n')
 
             # # Receive response from the server
@@ -142,76 +145,6 @@ def sendroutestocontroller(x):
                 break
     client_socket.close()
             
-    # while True:
-    #     prev=x[0]
-    #     x.pop(0)
-    #     while x:
-    #         # print(x[])
-    #         # status = False
-    #         response="notdone"
-    #         while response!="Done":
-    #             data=''
-    #             if x[0]=="Continue":
-    #                 data='d'
-    #                 # continue
-    #             elif x[0]=="Left" and prev =="Up":
-    #                 data='a'
-    #             elif x[0]=="Right" and prev =="Up":
-    #                 data='d'
-
-
-    #             elif x[0]=="Up" and prev =="Right":
-    #                 data='a'
-    #             elif x[0]=="Down" and prev =="Right":
-    #                 data='d'
-
-
-    #             elif x[0]=="Left" and prev =="Down":
-    #                 data='a'
-    #             elif x[0]=="Right" and prev =="Down":
-    #                 data='d'
-
-
-    #             elif x[0]=="Down" and prev =="Left":
-    #                 data='a'
-    #             elif x[0]=="Up" and prev =="Left":
-    #                 data='d'
-                
-    #             client_socket.sendall(data.encode() + b'\n')
-    #             response = client_socket.recv(1024)
-    #             print("Response from ESP-WROOM-32:", response.decode())
-
-            
-    #             if x[0]!="Continue":
-    #                 prev=x[0]
-    #             print("response is:  ",response)
-            
-    #         print('pooppedd')
-    #         x.pop(0)
-    #     client_socket.close()
-    #     return
-
-        # response = send_data('s')
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -232,13 +165,34 @@ def sendroute():
         result2 = find_item_by_key(data, search_key2)
         if result1.get('cost') < result2.get('cost'):
             sendroutestocontroller(result1.get(search_key1))
+            time.sleep(10)
+            newsearch_key=value1+value2
+            newresult= find_item_by_key(data,newsearch_key)
+            sendroutestocontroller(newresult.get(newsearch_key))
+            time.sleep(10)
+            finalsearch_key=value2+'k'
+            finalresult=find_item_by_key(data,finalsearch_key)
+            sendroutestocontroller(finalresult.get(finalsearch_key))
+            time.sleep(10)
         else:
-            sendroutestocontroller(result1.get(search_key1))
+            # sendroutestocontroller(result2.get(search_key1))
+            sendroutestocontroller(result2.get(search_key2))
+            time.sleep(10)
+            newsearch_key=value2+value1
+            newresult= find_item_by_key(data,newsearch_key)
+            sendroutestocontroller(newresult.get(newsearch_key))
+            time.sleep(10)
+
+            finalsearch_key=value1+'k'
+            finalresult=find_item_by_key(data,finalsearch_key)
+            sendroutestocontroller(finalresult.get(finalsearch_key))
+            time.sleep(10)
 
     else:
         route=result1.get(search_key1)
         goroute= determine_directions(route)
         sendroutestocontroller(goroute)
+        time.sleep(10)
         # returnresult1=find_item_by_key(data,value1+'k')
 
         # returnroute=determine_directions(returnresult1.get(value1+'k'))
